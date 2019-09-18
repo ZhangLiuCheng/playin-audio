@@ -10,7 +10,6 @@ import android.media.AudioRecord;
 import android.media.projection.MediaProjection;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.Log;
 
 import java.util.Arrays;
 import java.util.List;
@@ -40,21 +39,24 @@ public class ProjectionService extends Service implements Runnable {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.e("TAG", "[playin] ProjectionService ----> onCreate");
+        LogUtil.e("ProjectionService ----> onCreate");
         startForeground(1, CommonUtil.getNotification(getApplicationContext()),
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION);
+
+        SocketConnect.getInstance().startServer();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.e("TAG", "[playin] ProjectionService ----> onStartCommand");
+        LogUtil.e("ProjectionService ----> onStartCommand");
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.e("TAG", "[playin] ProjectionService ----> onDestroy");
+        SocketConnect.getInstance().stopServer();
+        LogUtil.e("ProjectionService ----> onDestroy");
     }
 
     @Override
@@ -70,8 +72,9 @@ public class ProjectionService extends Service implements Runnable {
             if (mAudioRecord != null) {
                 final int readCount = mAudioRecord.read(buffer, 0, mBufferSizeInBytes);
                 if (mLogcatState) {
-                    Log.e("TAG", Arrays.toString(buffer));
+                    LogUtil.e(Arrays.toString(buffer));
                 }
+                SocketConnect.getInstance().sendData(buffer);
             }
         }
     }
@@ -102,6 +105,8 @@ public class ProjectionService extends Service implements Runnable {
     public void startRecord(MediaProjection mediaProjection) {
         stopRecord();
         mBufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat);
+        LogUtil.e("ProjectionService ----> BufferSizeInBytes: " + mBufferSizeInBytes);
+
         mAudioRecord = createAudioRecoder(mediaProjection);
         mAudioRecord.startRecording();
         mRecordState = true;

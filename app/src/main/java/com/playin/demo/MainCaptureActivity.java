@@ -8,6 +8,8 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.net.LocalSocket;
+import android.net.LocalSocketAddress;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -21,7 +23,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.playin.capture.LogUtil;
 import com.playin.capture.ProjectionService;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Array;
+import java.util.Arrays;
 
 public class MainCaptureActivity extends AppCompatActivity implements View.OnClickListener, ProjectionService.ProjectionStateListener {
 
@@ -42,14 +50,16 @@ public class MainCaptureActivity extends AppCompatActivity implements View.OnCli
             mProjectionService = binder.getService();
             mProjectionService.setListener(MainCaptureActivity.this);
             mBound = true;
-            Log.e("TAG", "[playin] MainCaptureActivity ----> onServiceConnected");
+            LogUtil.e("MainCaptureActivity ----> onServiceConnected");
             initView();
+
+//            testLocalSocket();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
             mBound = false;
-            Log.e("TAG", "[playin] MainCaptureActivity ----> onServiceDisconnected");
+            LogUtil.e("MainCaptureActivity ----> onServiceDisconnected");
         }
     };
 
@@ -79,8 +89,7 @@ public class MainCaptureActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onStart() {
         super.onStart();
-        Log.e("TAG", "[playin] MainCaptureActivity ----> onStart");
-
+        LogUtil.e("MainCaptureActivity ----> onStart");
         Intent intent = new Intent(this, ProjectionService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
@@ -88,7 +97,7 @@ public class MainCaptureActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onStop() {
         super.onStop();
-        Log.e("TAG", "[playin] MainCaptureActivity ----> onStop");
+        LogUtil.e("MainCaptureActivity ----> onStop");
         if (mBound) {
             mProjectionService.setListener(null);
             unbindService(mConnection);
@@ -158,5 +167,26 @@ public class MainCaptureActivity extends AppCompatActivity implements View.OnCli
     @Override
     public void onStateChanged(boolean recordState, boolean logcatState) {
         initView();
+    }
+
+    private void testLocalSocket() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                LocalSocket client = new LocalSocket();
+                try {
+                    client.connect(new LocalSocketAddress("com.playin.audio.localsocket"));
+                    client.setSoTimeout(0);
+                    byte[] buf = new byte[3584];
+                    InputStream is = client.getInputStream();
+                    while (true) {
+                        is.read(buf);
+                        LogUtil.e("MainCaptureActivity::testLocalSocket ----> 读取到数据: " + Arrays.toString(buf));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 }
