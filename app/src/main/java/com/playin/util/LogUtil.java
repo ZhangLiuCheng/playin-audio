@@ -1,4 +1,4 @@
-package com.playin.capture;
+package com.playin.util;
 
 import android.util.Log;
 

@@ -9,11 +9,18 @@ import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
 import android.media.projection.MediaProjection;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
+
+import androidx.annotation.RequiresApi;
+
+import com.playin.util.CommonUtil;
+import com.playin.util.LogUtil;
 
 import java.util.Arrays;
 import java.util.List;
 
+@RequiresApi(api = Build.VERSION_CODES.Q)
 public class ProjectionService extends Service implements Runnable {
 
     private final IBinder mBinder = new LocalBinder();

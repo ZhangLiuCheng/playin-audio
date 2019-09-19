@@ -43,14 +43,7 @@ public class AudioHook {
     }
 
     private static void wayApk() {
-        new HookUtil().doHook();
-
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                new HookUtil().doHook();
-//            }
-//        }).start();
+        new HookNative().doHook();
     }
 
     private static void wayInject(final Context context) {
@@ -81,7 +74,7 @@ public class AudioHook {
         try {
             ClassLoader classLoader = context.getClassLoader();
             DexClassLoader dexClassLoader = new DexClassLoader(apkFile.getAbsolutePath(), context.getCodeCacheDir().getAbsolutePath(), null, classLoader);
-            Class<?> hookItem = Class.forName("com.playin.hook.HookUtil", true, dexClassLoader);
+            Class<?> hookItem = Class.forName("com.playin.hook.HookNative", true, dexClassLoader);
             Object t = hookItem.newInstance();
             for (Method method : hookItem.getDeclaredMethods()) {
                 if (method.getName().contains("doHook")) {

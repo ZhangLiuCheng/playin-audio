@@ -6,26 +6,26 @@ import pers.turing.technician.fasthook.FastHookCallback;
 import pers.turing.technician.fasthook.FastHookManager;
 import pers.turing.technician.fasthook.FastHookParam;
 
-public class HookUtil implements FastHookCallback {
+public class HookNative implements FastHookCallback {
 
     private final static String TAG = "AUDIO_HOOK";
 
     public void doHook() {
-        Log.e(TAG, "HookUtil:  -------> doHook  begin");
+        Log.e(TAG, "HookNative:  -------> doHook  begin");
         String methodSig = "([BII)I";
         FastHookManager.doHook("android.media.AudioTrack", null, "write",
                 methodSig, this, FastHookManager.MODE_REWRITE, true);
-        Log.e(TAG, "HookUtil:  -------> doHook   end");
+        Log.e(TAG, "HookNative:  -------> doHook   end");
     }
 
     @Override
     public void beforeHookedMethod(FastHookParam param) {
-        Log.e(TAG, "HookUtil:  -------> beforeHookedMethod");
+        Log.e(TAG, "HookNative:  -------> beforeHookedMethod");
     }
 
     @Override
     public void afterHookedMethod(FastHookParam param) {
-        Log.e(TAG, "HookUtil:  -------> afterHookedMethod");
+        Log.e(TAG, "HookNative:  -------> afterHookedMethod");
 
         try {
             byte[] audioData = (byte[]) param.args[0];

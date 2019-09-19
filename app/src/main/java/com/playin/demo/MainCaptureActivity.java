@@ -11,24 +11,20 @@ import android.media.projection.MediaProjectionManager;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.playin.capture.LogUtil;
+import com.playin.util.LogUtil;
 import com.playin.capture.ProjectionService;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Array;
 import java.util.Arrays;
 
 public class MainCaptureActivity extends AppCompatActivity implements View.OnClickListener, ProjectionService.ProjectionStateListener {

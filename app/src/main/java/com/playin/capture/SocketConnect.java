@@ -3,6 +3,8 @@ package com.playin.capture;
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 
+import com.playin.util.LogUtil;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
