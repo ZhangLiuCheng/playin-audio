@@ -31,8 +31,8 @@ public class AudioHook {
 //        wayInject(application.getBaseContext());
 
         SocketConnect.getInstance().startServer();
-        File file = application.getFilesDir();
-        File f = new File(file, "test.pcm");
+        File file = application.getExternalFilesDir("audio");
+        File f = new File(file, "helix_crush.pcm");
         if (!f.exists()) {
             try {
                 f.createNewFile();

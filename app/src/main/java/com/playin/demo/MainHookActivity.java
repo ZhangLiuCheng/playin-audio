@@ -4,13 +4,23 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.media.MediaPlayer;
+import android.net.LocalSocket;
+import android.net.LocalSocketAddress;
 import android.os.Bundle;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.playin.util.LogUtil;
+import com.playin.util.SocketConnect;
+
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Arrays;
 
 public class MainHookActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -23,6 +33,9 @@ public class MainHookActivity extends AppCompatActivity implements View.OnClickL
 
         findViewById(R.id.btnAudioTrack).setOnClickListener(this);
         findViewById(R.id.btnMediaPlayer).setOnClickListener(this);
+
+
+//        SocketConnect.getInstance().startServer();
     }
 
     @Override
@@ -35,38 +48,84 @@ public class MainHookActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void audioTrackPaly() {
-        int outputBufferSize = AudioTrack.getMinBufferSize(24000, AudioFormat.CHANNEL_IN_STEREO,
-                AudioFormat.ENCODING_PCM_16BIT);
-        final AudioTrack audioTrack = new AudioTrack(AudioManager.USE_DEFAULT_STREAM_TYPE, 24000,
-                AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, outputBufferSize, AudioTrack.MODE_STREAM);
+
+        int streamType = 3;
+        int sampleRateInHz = 24000;
+        int channelConfig = 3;
+        int audioFormat = 2;
+        int bufferSizeInBytes = 8480;
+
+        final AudioTrack audioTrack = new AudioTrack(streamType, sampleRateInHz,
+                channelConfig, audioFormat, bufferSizeInBytes, AudioTrack.MODE_STREAM);
         audioTrack.play();
 
+        final byte[] buf = new byte[bufferSizeInBytes];
+
         new Thread(new Runnable() {
-            byte[] buf = new byte[1024];
             InputStream is;
             int count;
 
             @Override
             public void run() {
                 try {
-                    is = getAssets().open("timi-24000-2-16bit.pcm");
+                    /*
+//                    is = getAssets().open("timi-24000-2-16bit.pcm");
+                    is = getAssets().open("helix_crush.pcm");
+//                    is = getAssets().open("tiles_hop.pcm"); // 没有声音
+//                    is = getAssets().open("magic_tiles3.pcm");
                     count = is.read(buf);
                     while (count > 0) {
+                        LogUtil.e("读取到音频数据: " + Arrays.toString(buf));
                         audioTrack.write(buf, 0, count);
                         count = is.read(buf);
                     }
+
+                    */
+
+                    LogUtil.e("开始连接");
+                    Socket localSocket = new Socket("172.20.10.3", 65535);
+                    localSocket.setSoTimeout(0);
+                    localSocket.setTcpNoDelay(true);
+                    InputStream is = localSocket.getInputStream();
+                    DataInputStream dis = new DataInputStream(is);
+                    LogUtil.e("连接成功");
+
+                    byte[] lenBuf = new byte[4];
+
+                    while (true) {
+
+                        dis.readFully(lenBuf);
+                        int length = bytesToInt(lenBuf);
+                        int type = dis.read();
+                        byte[] contentBuf = new byte[length - 1];
+                        dis.readFully(contentBuf);
+                        if (type == 0) {
+                            LogUtil.e("读取到音频参数: " + new String(contentBuf));
+                        } else {
+                            LogUtil.e("读取到音频数据: " + Arrays.toString(contentBuf));
+                            audioTrack.write(contentBuf, 0, contentBuf.length);
+                        }
+//                        count = is.read(buf);
+//                        LogUtil.e("读取到音频数据: " + Arrays.toString(buf));
+//                        audioTrack.write(buf, 0, count);
+                    }
                 } catch (Exception ex) {
+                    LogUtil.e("连接异常： " + ex);
                     ex.printStackTrace();
                 } finally {
-                    try {
-                        is.close();
-                        audioTrack.stop();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+//                    try {
+//                        is.close();
+//                        audioTrack.stop();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
                 }
             }
         }).start();
+    }
+
+    private int bytesToInt(byte[] bytes){
+        return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getInt();
     }
 
     private void mediaPlayerPlay() {

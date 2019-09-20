@@ -2,7 +2,6 @@ package com.playin.demo;
 
 import android.app.Application;
 import android.content.Context;
-import android.util.Log;
 
 import com.playin.util.LogUtil;
 
@@ -17,7 +16,7 @@ public class PlayApplication extends Application {
 //        AudioHook.init(this);
 
         File file = getFilesDir();
-        File f = new File(file, "test.pcm");
+        File f = new File(file, "helix_crush.pcm");
         LogUtil.e("======>  " + f.getAbsolutePath());
         if (!f.exists()) {
             try {

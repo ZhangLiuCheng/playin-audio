@@ -16,11 +16,14 @@ public class HookJava extends AudioTrack {
     public HookJava(int streamType, int sampleRateInHz, int channelConfig, int audioFormat, int bufferSizeInBytes, int mode) throws IllegalArgumentException {
         super(streamType, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, mode);
         Log.e("HookAudioTrack", "HookAudioTrack  11111");
+        SocketConnect.getInstance().sendAudioConfig(streamType, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, mode);
     }
 
     public HookJava(int streamType, int sampleRateInHz, int channelConfig, int audioFormat, int bufferSizeInBytes, int mode, int sessionId) throws IllegalArgumentException {
         super(streamType, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, mode, sessionId);
         Log.e("HookAudioTrack", "HookAudioTrack  22222");
+
+        SocketConnect.getInstance().sendAudioConfig(streamType, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, mode);
     }
 
     public HookJava(AudioAttributes attributes, AudioFormat format, int bufferSizeInBytes, int mode, int sessionId) throws IllegalArgumentException {
@@ -36,15 +39,14 @@ public class HookJava extends AudioTrack {
 
     @Override
     public int write(byte[] audioData, int offsetInBytes, int sizeInBytes) {
-        Log.e("HookAudioTrack", "HookAudioTrack  write  111111  " + Arrays.toString(audioData));
-        SocketConnect.getInstance().sendData(audioData);
+//        Log.e("HookAudioTrack", "HookAudioTrack  write  111111  ");
+        SocketConnect.getInstance().sendData(audioData, offsetInBytes, sizeInBytes);
         return super.write(audioData, offsetInBytes, sizeInBytes);
     }
 
     @Override
     public int write(byte[] audioData, int offsetInBytes, int sizeInBytes, int writeMode) {
-        Log.e("HookAudioTrack", "HookAudioTrack  write  22222  "  + Arrays.toString(audioData));
-        SocketConnect.getInstance().sendData(audioData);
+//        Log.e("HookAudioTrack", "HookAudioTrack  write  22222  ");
         return super.write(audioData, offsetInBytes, sizeInBytes, writeMode);
     }
 

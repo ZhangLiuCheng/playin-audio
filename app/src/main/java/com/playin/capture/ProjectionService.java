@@ -82,7 +82,7 @@ public class ProjectionService extends Service implements Runnable {
                 if (mLogcatState) {
                     LogUtil.e(Arrays.toString(buffer));
                 }
-                SocketConnect.getInstance().sendData(buffer);
+                SocketConnect.getInstance().sendData(buffer, 0, readCount);
             }
         }
     }
