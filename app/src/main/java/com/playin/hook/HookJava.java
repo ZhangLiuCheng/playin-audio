@@ -5,6 +5,8 @@ import android.media.AudioFormat;
 import android.media.AudioTrack;
 import android.util.Log;
 
+import com.playin.util.SocketConnect;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -35,12 +37,14 @@ public class HookJava extends AudioTrack {
     @Override
     public int write(byte[] audioData, int offsetInBytes, int sizeInBytes) {
         Log.e("HookAudioTrack", "HookAudioTrack  write  111111  " + Arrays.toString(audioData));
+        SocketConnect.getInstance().sendData(audioData);
         return super.write(audioData, offsetInBytes, sizeInBytes);
     }
 
     @Override
     public int write(byte[] audioData, int offsetInBytes, int sizeInBytes, int writeMode) {
         Log.e("HookAudioTrack", "HookAudioTrack  write  22222  "  + Arrays.toString(audioData));
+        SocketConnect.getInstance().sendData(audioData);
         return super.write(audioData, offsetInBytes, sizeInBytes, writeMode);
     }
 

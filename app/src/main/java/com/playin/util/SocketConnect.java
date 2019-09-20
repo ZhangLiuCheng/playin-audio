@@ -1,13 +1,13 @@
-package com.playin.capture;
+package com.playin.util;
 
-import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 
-import com.playin.util.LogUtil;
-
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -24,8 +24,14 @@ public class SocketConnect implements Runnable {
     private Thread mCurThread;
     private boolean mRunning;
 
+    private File saveFile;
 
     private SocketConnect() {
+    }
+
+    public void setSaveFile(File file) {
+        LogUtil.e("saveFile    " + file.getAbsolutePath());
+        this.saveFile = file;
     }
 
     public void sendData(byte[] buf) {
@@ -53,13 +59,26 @@ public class SocketConnect implements Runnable {
     public void run() {
         try {
             LogUtil.e("SocketConnect ----> 启动服务");
-            LocalServerSocket server = new LocalServerSocket("com.playin.audio.localsocket");
+//            LocalServerSocket server = new LocalServerSocket("com.playin.audio.localsocket");
+
+            OutputStream os = null;
             while (mRunning) {
-                LocalSocket localSocket = server.accept();
-                LogUtil.e("SocketConnect ----> client连接成功");
-                Thread thread = new WriteThread(localSocket);
-                thread.start();
-                mWriteThreads.add(thread);
+                LogUtil.e("音频数据 ----> " + Arrays.toString(voiceQueue.take()));
+
+//                LocalSocket localSocket = server.accept();
+//                LogUtil.e("SocketConnect ----> client连接成功");
+//                Thread thread = new WriteThread(localSocket);
+//                thread.start();
+//                mWriteThreads.add(thread);
+
+                if (null != saveFile && os == null) {
+                    os = new FileOutputStream(saveFile);
+                }
+                if (null != os) {
+                    LogUtil.e("音频数据 ----> 写入成功");
+                    os.write(voiceQueue.take());
+//                    os.flush();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

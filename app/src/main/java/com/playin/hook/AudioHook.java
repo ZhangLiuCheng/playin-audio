@@ -7,8 +7,11 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.playin.util.SocketConnect;
+
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 
@@ -19,27 +22,25 @@ public class AudioHook {
     private final static String TAG = "AUDIO_HOOK";
 
     public static void init(Application application) {
-
-        Log.e(TAG, "AudioHook     init");
-
-//        SharedPreferences preferences = application.getSharedPreferences("hook", Context.MODE_PRIVATE);
-//        boolean hasHook = preferences.getBoolean("hook", false);
-//
-//        Log.e(TAG, "AudioHook     11111");
-//
-//        if (!hasHook) {
-//            Log.e(TAG, "AudioHook     2222");
-//            preferences.edit().putBoolean("hook", true).commit();
-//            // apk
-//            wayApk();
-//        }
-//        Log.e(TAG, "AudioHook     3333");
+        Log.e(TAG, "AudioHook     init   " + application);
 
 //        // apk
-        wayApk();
+//        wayApk();
 
         // 注入
 //        wayInject(application.getBaseContext());
+
+        SocketConnect.getInstance().startServer();
+        File file = application.getFilesDir();
+        File f = new File(file, "test.pcm");
+        if (!f.exists()) {
+            try {
+                f.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        SocketConnect.getInstance().setSaveFile(f);
     }
 
     private static void wayApk() {
