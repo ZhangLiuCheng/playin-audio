@@ -58,19 +58,24 @@ public class SocketConnect implements Runnable {
         }
     }
 
+    byte[] printBuf = new byte[5];
     public void sendData(byte[] buf, int offsetInBytes, int sizeInBytes) {
         if (buf == null || buf.length < 5 || (buf[0] == 0 && buf[1] == 0 && buf[2] == 0 && buf[3] == 0 && buf[4] == 0)) {
             return;
         }
-        LogUtil.i("SocketConnect::音频数据 ----> " + Arrays.toString(buf));
-        if (voiceQueue.size() > 90) {
-            try {
-                voiceQueue.take();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//        if (voiceQueue.size() > 90) {
+//            try {
+//                voiceQueue.take();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+        System.arraycopy(buf, 0, printBuf, 0, printBuf.length);
+        LogUtil.i("SocketConnect::音频前5个数据 ----> " + Arrays.toString(printBuf));
+        boolean flag = voiceQueue.offer(getSendData(1, buf));
+        if (flag == false) {
+            LogUtil.e("SocketConnect::发送队列已满，丢弃音频数据 " + voiceQueue.size());
         }
-        voiceQueue.offer(getSendData(1, buf));
     }
 
     public void startServer() {
@@ -121,16 +126,27 @@ public class SocketConnect implements Runnable {
 //                        os.write(voiceQueue.take());
 //                        os.flush();
 //                    }
+
+
                     ServerSocket server = new ServerSocket(55555);
                     while (mRunning) {
                         Socket socket = server.accept();
                         socket.setKeepAlive(true);
+                        socket.setSendBufferSize(1024*30);
                         socket.setTcpNoDelay(true);
                         interruptOtherThread();
                         Thread thread = new CommonSocketWriteThread(socket);
                         thread.start();
                         mWriteThreads.add(thread);
                     }
+
+
+//                    Socket socket = new Socket("172.20.10.3", 55555);
+//                    socket.setSoTimeout(0);
+//                    socket.setReceiveBufferSize(1024*30);
+//                    socket.setTcpNoDelay(true);
+//                    Thread thread = new CommonSocketWriteThread(socket);
+//                    thread.start();
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }

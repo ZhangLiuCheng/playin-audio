@@ -17,6 +17,7 @@ import com.playin.util.SocketConnect;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -55,11 +56,20 @@ public class MainHookActivity extends AppCompatActivity implements View.OnClickL
         int audioFormat = 2;
         int bufferSizeInBytes = 8480;
 
+//        streamType: 3  sampleRateInHz: 44100  channelConfig: 12  audioFormat: 2   bufferSizeInBytes: 14144
+
+
+//        int streamType = 3;
+//        int sampleRateInHz = 44100;
+//        int channelConfig = 12;
+//        int audioFormat = 2;
+//        int bufferSizeInBytes = 14144;
+
         final AudioTrack audioTrack = new AudioTrack(streamType, sampleRateInHz,
                 channelConfig, audioFormat, bufferSizeInBytes, AudioTrack.MODE_STREAM);
         audioTrack.play();
 
-        final byte[] buf = new byte[bufferSizeInBytes];
+        final byte[] buf = new byte[bufferSizeInBytes * 2];
 
         new Thread(new Runnable() {
             InputStream is;
@@ -82,10 +92,16 @@ public class MainHookActivity extends AppCompatActivity implements View.OnClickL
 
                     */
 
+
                     LogUtil.e("开始连接");
 
-                    Socket localSocket = new Socket("172.20.10.3", 55555);
+
+//                    Socket localSocket = new Socket("172.20.10.3", 55555);
+//                    Socket localSocket = new Socket("192.168.10.91", 55555);
+                    Socket localSocket = new Socket("54.152.254.32", 55555);
+
                     localSocket.setSoTimeout(0);
+                    localSocket.setReceiveBufferSize(1024*30);
                     localSocket.setTcpNoDelay(true);
 
 //                    LocalSocket localSocket = new LocalSocket();
@@ -95,6 +111,14 @@ public class MainHookActivity extends AppCompatActivity implements View.OnClickL
                     LogUtil.e("连接成功");
                     InputStream is = localSocket.getInputStream();
                     DataInputStream dis = new DataInputStream(is);
+
+
+//                    ServerSocket server = new ServerSocket(55555);
+//                    Socket localSocket = server.accept();
+//                    LogUtil.e("连接成功");
+//                    InputStream is = localSocket.getInputStream();
+//                    DataInputStream dis = new DataInputStream(is);
+
                     byte[] lenBuf = new byte[4];
                     while (true) {
                         dis.readFully(lenBuf);
@@ -105,7 +129,7 @@ public class MainHookActivity extends AppCompatActivity implements View.OnClickL
                         if (type == 0) {
                             LogUtil.e("读取到音频参数: " + new String(contentBuf));
                         } else {
-                            LogUtil.e("读取到音频数据: " + Arrays.toString(contentBuf));
+                            LogUtil.e("读取到音频数据:  " + contentBuf.length + "  -----  " + Arrays.toString(contentBuf));
                             audioTrack.write(contentBuf, 0, contentBuf.length);
                         }
                     }
