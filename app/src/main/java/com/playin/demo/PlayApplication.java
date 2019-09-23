@@ -3,6 +3,7 @@ package com.playin.demo;
 import android.app.Application;
 import android.content.Context;
 
+import com.playin.hook.AudioHook;
 import com.playin.util.LogUtil;
 
 import java.io.File;

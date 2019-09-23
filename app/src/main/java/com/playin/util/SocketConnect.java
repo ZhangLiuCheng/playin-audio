@@ -23,6 +23,7 @@ public class SocketConnect implements Runnable {
     private LinkedBlockingQueue<byte[]> voiceQueue = new LinkedBlockingQueue(100);
 
     private static SocketConnect sInstance = new SocketConnect();
+
     public static SocketConnect getInstance() {
         return sInstance;
     }
@@ -62,6 +63,13 @@ public class SocketConnect implements Runnable {
             return;
         }
         LogUtil.i("SocketConnect::音频数据 ----> " + Arrays.toString(buf));
+        if (voiceQueue.size() > 90) {
+            try {
+                voiceQueue.take();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         voiceQueue.offer(getSendData(1, buf));
     }
 
@@ -76,7 +84,7 @@ public class SocketConnect implements Runnable {
         LogUtil.e("SocketConnect ----> stopServer");
         mRunning = false;
         mCurThread.interrupt();
-        for (Thread thread: mWriteThreads) {
+        for (Thread thread : mWriteThreads) {
             thread.interrupt();
         }
     }
@@ -85,65 +93,80 @@ public class SocketConnect implements Runnable {
     public void run() {
         try {
             LogUtil.e("SocketConnect:: run ----> 启动服务");
-
+            testCommonSocket();
             LocalServerSocket server = new LocalServerSocket("com.playin.audio.localsocket");
-
-//            ServerSocket server = new ServerSocket(65535);
-
             while (mRunning) {
                 LocalSocket localSocket = server.accept();
-
-//                Socket localSocket = server.accept();
-//                localSocket.setKeepAlive(true);
-//                localSocket.setTcpNoDelay(true);
-
                 LogUtil.e("SocketConnect ----> client连接成功  ");
-                Thread thread = new WriteThread(localSocket);
+                interruptOtherThread();
+                Thread thread = new LocalSocketWriteThread(localSocket);
                 thread.start();
                 mWriteThreads.add(thread);
-
-//                if (null != saveFile && os == null) {
-//                    os = new FileOutputStream(saveFile);
-//                }
-//                if (null != os) {
-//                    LogUtil.e("音频数据 ----> 写入成功");
-//                    os.write(voiceQueue.take());
-//                    os.flush();
-//                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public class WriteThread extends Thread {
+    private void testCommonSocket() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+//                    if (null != saveFile && os == null) {
+//                        os = new FileOutputStream(saveFile);
+//                    }
+//                    if (null != os) {
+//                        LogUtil.e("音频数据 ----> 写入成功");
+//                        os.write(voiceQueue.take());
+//                        os.flush();
+//                    }
+                    ServerSocket server = new ServerSocket(55555);
+                    while (mRunning) {
+                        Socket socket = server.accept();
+                        socket.setKeepAlive(true);
+                        socket.setTcpNoDelay(true);
+                        interruptOtherThread();
+                        Thread thread = new CommonSocketWriteThread(socket);
+                        thread.start();
+                        mWriteThreads.add(thread);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }).start();
+    }
 
+    // 只能有一个连接
+    private void interruptOtherThread() {
+        for (Thread thread : mWriteThreads) {
+            thread.interrupt();
+        }
+        mWriteThreads.clear();
+    }
+
+    private class LocalSocketWriteThread extends Thread {
         private LocalSocket localSocket;
 
-        public WriteThread(LocalSocket localSocket) {
+        public LocalSocketWriteThread(LocalSocket localSocket) {
             this.localSocket = localSocket;
         }
-
-//        private Socket localSocket;
-//
-//        public WriteThread(Socket localSocket) {
-//            this.localSocket = localSocket;
-//        }
 
         @Override
         public void run() {
             OutputStream os = null;
-            LogUtil.e("SocketConnect::WriteThread  ----> run ");
+            LogUtil.e("SocketConnect::LocalSocketWriteThread  ---->  run ");
 
             try {
                 os = localSocket.getOutputStream();
                 while (true) {
                     byte[] buf = voiceQueue.take();
-                    LogUtil.e("SocketConnect::音频数据发送成功 " + buf.length);
+                    LogUtil.e("SocketConnect::LocalSocketWriteThread  ---->  音频数据发送成功 " + buf.length);
                     os.write(buf);
                 }
             } catch (Exception e) {
-                LogUtil.e("SocketConnect::WriteThread Exception: " + e);
+                LogUtil.e("SocketConnect::LocalSocketWriteThread  ---->  Exception: " + e);
             } finally {
                 try {
                     os.close();
@@ -155,7 +178,38 @@ public class SocketConnect implements Runnable {
         }
     }
 
-    public byte[] getSendData(int type, byte[] src) {
+    private class CommonSocketWriteThread extends Thread {
+        private Socket socket;
+
+        public CommonSocketWriteThread(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+            OutputStream os = null;
+            LogUtil.e("SocketConnect::CommonSocketWriteThread  ---->  run ");
+            try {
+                os = socket.getOutputStream();
+                while (true) {
+                    byte[] buf = voiceQueue.take();
+                    LogUtil.e("SocketConnect::CommonSocketWriteThread  ---->  音频数据发送成功 " + buf.length);
+                    os.write(buf);
+                }
+            } catch (Exception e) {
+                LogUtil.e("SocketConnect::CommonSocketWriteThread  ---->  Exception: " + e);
+            } finally {
+                try {
+                    os.close();
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private byte[] getSendData(int type, byte[] src) {
         byte[] buf = new byte[4 + 1 + src.length];
         byte[] lenBuf = intToBytes(1 + src.length);
         System.arraycopy(lenBuf, 0, buf, 0, lenBuf.length);
@@ -164,7 +218,7 @@ public class SocketConnect implements Runnable {
         return buf;
     }
 
-    private byte[] intToBytes(int num){
+    private byte[] intToBytes(int num) {
         return ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(num).array();
     }
 }

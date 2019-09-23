@@ -83,17 +83,20 @@ public class MainHookActivity extends AppCompatActivity implements View.OnClickL
                     */
 
                     LogUtil.e("开始连接");
-                    Socket localSocket = new Socket("172.20.10.3", 65535);
+
+                    Socket localSocket = new Socket("172.20.10.3", 55555);
                     localSocket.setSoTimeout(0);
                     localSocket.setTcpNoDelay(true);
+
+//                    LocalSocket localSocket = new LocalSocket();
+//                    LocalSocketAddress address = new LocalSocketAddress("com.playin.audio.localsocket");
+//                    localSocket.connect(address);
+
+                    LogUtil.e("连接成功");
                     InputStream is = localSocket.getInputStream();
                     DataInputStream dis = new DataInputStream(is);
-                    LogUtil.e("连接成功");
-
                     byte[] lenBuf = new byte[4];
-
                     while (true) {
-
                         dis.readFully(lenBuf);
                         int length = bytesToInt(lenBuf);
                         int type = dis.read();
@@ -105,12 +108,10 @@ public class MainHookActivity extends AppCompatActivity implements View.OnClickL
                             LogUtil.e("读取到音频数据: " + Arrays.toString(contentBuf));
                             audioTrack.write(contentBuf, 0, contentBuf.length);
                         }
-//                        count = is.read(buf);
-//                        LogUtil.e("读取到音频数据: " + Arrays.toString(buf));
-//                        audioTrack.write(buf, 0, count);
                     }
+
                 } catch (Exception ex) {
-                    LogUtil.e("连接异常： " + ex);
+                    LogUtil.e("连接异常1------->： " + ex);
                     ex.printStackTrace();
                 } finally {
 //                    try {

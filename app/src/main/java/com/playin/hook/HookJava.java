@@ -15,20 +15,20 @@ public class HookJava extends AudioTrack {
 
     public HookJava(int streamType, int sampleRateInHz, int channelConfig, int audioFormat, int bufferSizeInBytes, int mode) throws IllegalArgumentException {
         super(streamType, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, mode);
-        Log.e("HookAudioTrack", "HookAudioTrack  11111");
+//        Log.e("HookAudioTrack", "HookAudioTrack  11111");
         SocketConnect.getInstance().sendAudioConfig(streamType, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, mode);
     }
 
     public HookJava(int streamType, int sampleRateInHz, int channelConfig, int audioFormat, int bufferSizeInBytes, int mode, int sessionId) throws IllegalArgumentException {
         super(streamType, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, mode, sessionId);
-        Log.e("HookAudioTrack", "HookAudioTrack  22222");
+//        Log.e("HookAudioTrack", "HookAudioTrack  22222");
 
         SocketConnect.getInstance().sendAudioConfig(streamType, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, mode);
     }
 
     public HookJava(AudioAttributes attributes, AudioFormat format, int bufferSizeInBytes, int mode, int sessionId) throws IllegalArgumentException {
         super(attributes, format, bufferSizeInBytes, mode, sessionId);
-        Log.e("HookAudioTrack", "HookAudioTrack  33333");
+//        Log.e("HookAudioTrack", "HookAudioTrack  33333");
     }
 
     @Override
