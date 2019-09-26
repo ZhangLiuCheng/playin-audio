@@ -97,8 +97,8 @@ public class MainHookActivity extends AppCompatActivity implements View.OnClickL
 
 
 //                    Socket localSocket = new Socket("172.20.10.3", 55555);
-//                    Socket localSocket = new Socket("192.168.10.91", 55555);
-                    Socket localSocket = new Socket("54.152.254.32", 55555);
+                    Socket localSocket = new Socket("192.168.10.7", 55555);
+//                    Socket localSocket = new Socket("54.152.254.32", 55555);
 
                     localSocket.setSoTimeout(0);
                     localSocket.setReceiveBufferSize(1024*30);
