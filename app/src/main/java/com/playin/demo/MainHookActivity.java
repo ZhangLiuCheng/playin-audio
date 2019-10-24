@@ -11,6 +11,7 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.playin.hook.AutoContorl;
 import com.playin.util.LogUtil;
 import com.playin.util.SocketConnect;
 
@@ -35,6 +36,7 @@ public class MainHookActivity extends AppCompatActivity implements View.OnClickL
         findViewById(R.id.btnAudioTrack).setOnClickListener(this);
         findViewById(R.id.btnMediaPlayer).setOnClickListener(this);
 
+        AutoContorl.start(this);
 
 //        SocketConnect.getInstance().startServer();
     }
