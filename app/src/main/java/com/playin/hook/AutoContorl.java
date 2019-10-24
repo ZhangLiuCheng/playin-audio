@@ -1,14 +1,10 @@
 package com.playin.hook;
 
-import android.Manifest;
 import android.app.Instrumentation;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.view.MotionEvent;
-
-import androidx.core.app.ActivityCompat;
 
 import com.playin.util.LogUtil;
 
@@ -52,6 +48,7 @@ public class AutoContorl {
         Thread.sleep(time);
         int offetX = Integer.parseInt(coord[0]);
         int offetY = Integer.parseInt(coord[1]);
+        LogUtil.e(" ========>  time: " + time + "  offetX: " + offetX + "  offetY: " + offetY);
         MotionEvent event = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
                 MotionEvent.ACTION_DOWN, offetX, offetY, 0);
         inst.sendPointerSync(event);
