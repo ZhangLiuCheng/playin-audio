@@ -8,14 +8,21 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
 
 import com.playin.demo.R;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CommonUtil {
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public static Notification getNotification(Context context) {
         String CHANNEL_ONE_ID = "com.primedu.cn";
         String CHANNEL_ONE_NAME = "Channel One";
@@ -56,5 +63,38 @@ public class CommonUtil {
             }
         }
         return uids;
+    }
+
+
+    public static File copyAssetsFile(Context context, String fileName, File path) {
+        InputStream is = null;
+        FileOutputStream os = null;
+        if (!path.exists()) path.mkdirs();
+        File apkFile = new File(path + File.separator + "audio_hook.apk");
+        if (apkFile.exists()) {
+            return apkFile;
+        }
+        try {
+            is = context.getAssets().open(fileName);
+            apkFile.createNewFile();
+            LogUtil.e("开始拷贝apk");
+            os = new FileOutputStream(apkFile);
+            byte[] buf = new byte[1024];
+            int i = 0;
+            while ((i = is.read(buf)) > 0) {
+                os.write(buf, 0, i);
+            }
+            LogUtil.e("拷贝apk完毕");
+        } catch (Exception e) {
+            apkFile.delete();
+            return null;
+        } finally {
+            try {
+                if (is != null) is.close();
+                if (os != null) os.close();
+            } catch (Exception ex) {
+            }
+        }
+        return apkFile;
     }
 }

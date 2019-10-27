@@ -3,7 +3,7 @@ package com.playin.demo;
 import android.app.Application;
 import android.content.Context;
 
-import com.playin.hook.AudioHook;
+import com.playin.hook.PlayInject;
 import com.playin.util.LogUtil;
 
 import java.io.File;
@@ -14,7 +14,7 @@ public class PlayApplication extends Application {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
-//        AudioHook.init(this);
+        PlayInject.init(this);
 
         File file = getFilesDir();
         File f = new File(file, "helix_crush.pcm");
