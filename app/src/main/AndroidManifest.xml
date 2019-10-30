@@ -4,6 +4,10 @@
 
 <!--    android:sharedUserId="android.uid.system"-->
 
+    <uses-permission android:name="android.permission.READ_FRAME_BUFFER"/>
+
+
+
     <application
         android:name=".PlayApplication"
         android:allowAudioPlaybackCapture="true"
