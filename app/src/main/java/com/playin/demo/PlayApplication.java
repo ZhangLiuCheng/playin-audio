@@ -14,7 +14,7 @@ public class PlayApplication extends Application {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
-        PlayInject.init(this);
+//        PlayInject.init(this);
 
         File file = getFilesDir();
         File f = new File(file, "helix_crush.pcm");
