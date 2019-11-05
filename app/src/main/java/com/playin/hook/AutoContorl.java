@@ -29,7 +29,7 @@ public class AutoContorl {
                     if (!rootFile.exists()) return;
                     List<String> ctrolStrs = getControlStrs(rootFile);
                     long startTime = System.currentTimeMillis();
-                    while (System.currentTimeMillis() - startTime <= 60000 * 2) {
+                    while (System.currentTimeMillis() - startTime <= 60000 * 3) {
                         boolean result = processControl(context, rootFile, ctrolStrs);
                         if (result) break;
                     }
