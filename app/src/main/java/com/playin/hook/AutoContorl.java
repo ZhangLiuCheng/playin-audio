@@ -106,7 +106,6 @@ public class AutoContorl {
 
     private static File screencap(Context context) {
         File file = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-//        File tmpImg = new File(file, "control_tmp" + System.currentTimeMillis() + ".jpeg");
         File tmpImg = new File(file, "tmp.jpeg");
         try {
             Process sh = Runtime.getRuntime().exec("su", null,null);
