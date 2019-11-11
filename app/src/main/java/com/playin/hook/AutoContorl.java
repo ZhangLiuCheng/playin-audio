@@ -14,10 +14,12 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 public class AutoContorl {
 
@@ -25,6 +27,7 @@ public class AutoContorl {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                updateStatus(context, "PREPARE");
                 try {
                     File rootFile = getControlFile(context);
                     String meg = rootFile.exists() ? " 存在 " : "不存在";
@@ -38,7 +41,10 @@ public class AutoContorl {
                     long startTime = System.currentTimeMillis();
                     while (System.currentTimeMillis() - startTime <= configObj.optInt("duration")) {
                         boolean result = processControl(context, rootFile, configObj);
-                        if (result) break;
+                        if (result) {
+                            updateStatus(context, "READY");
+                            break;
+                        }
                         Thread.sleep(configObj.optInt("interval"));
                     }
                 } catch (Exception ex) {
@@ -46,6 +52,28 @@ public class AutoContorl {
                 }
             }
         }).start();
+    }
+
+    /**
+     * @param status "PREPARE" or "READY",
+     */
+    private static void updateStatus(Context context, String status) {
+        File statusFile = new File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
+                "STATUS");
+        try {
+            if (!statusFile.exists()) {
+                statusFile.createNewFile();
+            }
+            JSONObject obj = new JSONObject();
+            obj.put("status", status);
+            obj.put("timestamp", System.currentTimeMillis());
+            FileWriter fileWriter = new FileWriter(statusFile, false);
+            fileWriter.write(obj.toString());
+            fileWriter.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            LogUtil.e("============> 更新状态失败 " + e.toString());
+        }
     }
 
     private static File getControlFile(Context context) {
@@ -74,17 +102,22 @@ public class AutoContorl {
 
     private static boolean processControl(Context context, File rootFile, JSONObject configObj) {
         try {
-            JSONObject gameScreenObj = configObj.optJSONObject("gameScreen");
             File capImgFile = screencap(context);
             if (capImgFile == null) return true;
 
+            JSONArray gameScreenArray = configObj.optJSONArray("gameScreens");
             // 比较是否进入游戏
-            if (null != gameScreenObj) {
-                File gameFile = new File(rootFile, gameScreenObj.optString("image"));
-                int gameResult = SimilarImage.compare(capImgFile, gameFile);
-                LogUtil.e("游戏页面比较结果:  " + gameScreenObj.optString("image") + " : " + gameResult);
-                if (gameResult < gameScreenObj.optInt("level")) {
-                    return gameScreenObj.optInt("interrupt") > 0 ? true : false;
+            if (null != gameScreenArray) {
+                for (int i = 0; i < gameScreenArray.length(); i++) {
+                    JSONObject gameScreenObj = gameScreenArray.optJSONObject(i);
+                    File gameFile = new File(rootFile, gameScreenObj.optString("image"));
+                    int gameResult = SimilarImage.compare(capImgFile, gameFile);
+                    LogUtil.e("游戏页面比较结果:  " + gameScreenObj.optString("image") + " : " + gameResult);
+                    if (gameResult < gameScreenObj.optInt("level")) {
+                        if (gameScreenObj.optInt("interrupt") > 0) {
+                            return true;
+                        }
+                    }
                 }
             }
 
