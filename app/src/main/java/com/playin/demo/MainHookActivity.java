@@ -1,5 +1,6 @@
 package com.playin.demo;
 
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -15,13 +16,19 @@ import com.playin.hook.AutoContorl;
 import com.playin.util.LogUtil;
 import com.playin.util.SocketConnect;
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 public class MainHookActivity extends AppCompatActivity implements View.OnClickListener {
@@ -35,6 +42,7 @@ public class MainHookActivity extends AppCompatActivity implements View.OnClickL
 
         findViewById(R.id.btnAudioTrack).setOnClickListener(this);
         findViewById(R.id.btnMediaPlayer).setOnClickListener(this);
+        findViewById(R.id.btnUpdate).setOnClickListener(this);
 
         AutoContorl.start(this);
 
@@ -47,7 +55,99 @@ public class MainHookActivity extends AppCompatActivity implements View.OnClickL
             audioTrackPaly();
         } else if (view.getId() == R.id.btnMediaPlayer) {
             mediaPlayerPlay();
+        } else if (view.getId() == R.id.btnUpdate) {
+            update();
         }
+    }
+
+    private void update() {
+        LogUtil.e("-----------1111--------------");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+//                cmd("pm install /sdcard/DancingRoad.apk");
+//                cmd("pm install /sdcard/app-debug.apk");
+
+                silentInstall("/sdcard/app-debug.apk");
+            }
+        }).start();
+        LogUtil.e("-----------2222--------------");
+    }
+
+    private static void cmd(String cmd) {
+        try {
+            Process sh = Runtime.getRuntime().exec("su", null,null);
+            OutputStream os = sh.getOutputStream();
+            os.write(("/system/bin/" + cmd).getBytes("ASCII"));
+            os.flush();
+            os.close();
+            sh.waitFor();
+            LogUtil.e("-----------安装成功--------------");
+        } catch (Exception e) {
+            e.printStackTrace();
+            LogUtil.e("========>  失败");
+        }
+    }
+
+    public static boolean silentInstall(String apkPath) {
+        boolean result = false;
+        DataOutputStream dataOutputStream = null;
+        BufferedReader errorStream = null;
+        BufferedReader successStream = null;
+        Process process = null;
+        try {
+            // 申请 su 权限
+            process = Runtime.getRuntime().exec("su");
+            dataOutputStream = new DataOutputStream(process.getOutputStream());
+            // 执行 pm install 命令
+            String command = "pm install -r " + apkPath + "\n";
+            dataOutputStream.write(command.getBytes(Charset.forName("UTF-8")));
+            dataOutputStream.writeBytes("exit\n");
+            dataOutputStream.flush();
+            process.waitFor();
+            errorStream = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            StringBuilder errorMsg = new StringBuilder();
+            String line;
+            while ((line = errorStream.readLine()) != null) {
+                errorMsg.append(line);
+            }
+            LogUtil.e("silent install error message: " + errorMsg);
+            StringBuilder successMsg = new StringBuilder();
+            successStream = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            // 读取命令执行结果
+            while ((line = successStream.readLine()) != null) {
+                successMsg.append(line);
+            }
+            LogUtil.e("silent install success message: " + successMsg);
+            // 如果执行结果中包含 Failure 字样就认为是操作失败，否则就认为安装成功
+            if (!(errorMsg.toString().contains("Failure") || successMsg.toString().contains("Failure"))) {
+                result = true;
+            }
+        } catch (Exception e) {
+            LogUtil.e(e.toString());
+        } finally {
+            try {
+                if (process != null) {
+                    process.destroy();
+                }
+                if (dataOutputStream != null) {
+                    dataOutputStream.close();
+                }
+                if (errorStream != null) {
+                    errorStream.close();
+                }
+                if (successStream != null) {
+                    successStream.close();
+                }
+            } catch (Exception e) {
+                // ignored
+            }
+        }
+        return result;
+    }
+
+    public static boolean isRoot() {
+        return new File("/system/bin/su").exists() || new File("/system/xbin/su").exists();
     }
 
     private void audioTrackPaly() {
